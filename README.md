@@ -76,7 +76,7 @@ The following documentation shows method signatures as used by TypeScript - if y
 
 ### Constructor ###
 
-* **`LocalStorageProvider (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5)`**<br>
+* **`LocalStorageProvider (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5)`**<br>creates a new instance of `LocalStorageProvider` which synchronizes the given `sharedDoc` on `localStorage`. `DocName` is used as a prefix for the keys under which updates of `sharedDoc` are stored. `CounterLimit` indicates how many updates will just be appended to `localStorage` before they will be compacted into a single one
 
 ### Properties ###
 
