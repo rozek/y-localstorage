@@ -9,7 +9,7 @@ export default {
     {
       file:     './dist/y-localstorage.js',
       format:   'umd', // builds for both Node.js and Browser
-      name:     'yLocalStorage', // required for UMD modules
+      name:     'LocalStorageProvider', // required for UMD modules
       sourcemap:true,
       plugins: [terser({ format:{ comments:false, safari10:true } })],
     },{
