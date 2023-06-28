@@ -31,6 +31,35 @@ or load the plain script file directly
 <script src="https://unpkg.com/y-localstorage"></script>
 ```
 
+## Access ##
+
+How to access the package depends on the type of module you prefer
+
+* ESM (or Svelte): `import { LocalStorageProvider } from 'y-localstorage'`
+* CommonJS: `const LocalStorageProvider = require('y-localstorage')`
+* AMD: `require(['y-localstorage'], (LocalStorageProvider) => {...})`
+
+Alternatively, you may access the global variable `LocalStorageProvider` directly.
+
+Note for ECMAScript module users: all module functions and values are exported individually, thus allowing your bundler to perform some "tree-shaking" in order to include actually used functions or values (together with their dependencies) only.
+
+## Usage within Svelte ##
+
+For Svelte, it is recommended to import the package in a module context. From then on, its exports may be used as usual:
+
+```html
+<script context="module">
+  import * as Y     from 'yjs'
+  import { LocalStorageProvider } from 'y-localstorage'
+</script>
+
+<script>
+  const sharedDoc   = new Y.Doc()
+  const Persistence = new LocalStorageProvider('local-persistence', sharedDoc)
+  ...
+</script>
+```
+
 
 
 
