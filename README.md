@@ -76,16 +76,18 @@ The following documentation shows method signatures as used by TypeScript - if y
 
 ### Constructor ###
 
+* **`LocalStorageProvider (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5)`**<br>
+
 ### Properties ###
 
 * **`isSynced`**<br>returns `true` while the initially given `Y.Doc` and this provider are in sync - or `false` otherwise
 
 ### Events ###
 
-
-
-
-
+* **`on('sync-started', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
+* **`on('sync-continued', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
+* **`on('sync-finished', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
+* **`on('synced', Handler:(Provider:LocalStorageProvider) => void`**<br>
 
 ## Build Instructions ##
 
