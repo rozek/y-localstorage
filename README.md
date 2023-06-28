@@ -9,9 +9,27 @@ This module implements a simple Yjs storage provider for browser-based applicati
 * contains an `isSynced` property which reflects the current synchronization status and
 * emits additional events (`sync-started`, `sync-continued` and `sync-finished`) which informs about synchronization progress.
 
-Like other providers, however, it also lacks any error handling - which should normally exist in _any_ "database" implementation...
+Like other providers, however, it also lacks any error handling - which should normally exist in _every_ "database" implementation...
+
+**NPM users**: please consider the [Github README](https://github.com/rozek/y-localstorage/blob/main/README.md) for the latest description of this package (as updating the docs would otherwise always require a new NPM package version)
 
 > Nota bene: do not use this provider in production - it has solely be written for educational purposes!
+
+## Installation ##
+
+`y-localstorage` may be used as an ECMAScript module (ESM), a CommonJS or AMD module or from a global variable.
+
+You may either install the package into your build environment using [NPM](https://docs.npmjs.com/) with the command
+
+```
+npm install y-localstorage
+```
+
+or load the plain script file directly
+
+```html
+<script src="https://unpkg.com/y-localstorage"></script>
+```
 
 
 
