@@ -60,6 +60,28 @@ For Svelte, it is recommended to import the package in a module context. From th
 </script>
 ```
 
+## Usage as ECMAscript, CommonJS or AMD Module (or as a global Variable) ##
+
+Let's assume that you already "required" or "imported" (or simply loaded) the module according to your local environment. In that case, you may use it as follows:
+
+```javascript
+  ...
+  const Persistence = new LocalStorageProvider('local-persistence', sharedDoc)
+  ...
+```
+
+## API Reference ##
+
+The following documentation shows method signatures as used by TypeScript - if you prefer plain JavaScript, just ignore the type annotations.
+
+### Constructor ###
+
+### Properties ###
+
+* **`isSynced`**<br>returns `true` while the initially given `Y.Doc` and this provider are in sync - or `false` otherwise
+
+### Events ###
+
 
 
 
