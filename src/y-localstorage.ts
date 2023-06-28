@@ -91,10 +91,18 @@ namespace LocalStorageProvider {
   /**** destroy - destroys persistence, invalidates provider ****/
 
     destroy ():void {
+      if (this._sharedDoc == null) { return }    // persistence no longer exists
+
       this._removeStoredUpdates()
 
       this._sharedDoc.off('update',  this._storeUpdate)
       this._sharedDoc.off('destroy', this.destroy)
+
+      if (! this.isSynced) {
+        this._pendingUpdates = 0
+        this.emit('sync-aborted',[this,1.0])
+      }
+
 // @ts-ignore allow clearing of "this._sharedDoc"
       this._sharedDoc = undefined
     }
