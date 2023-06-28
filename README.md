@@ -2,6 +2,15 @@
 
 a simple [Yjs](https://docs.yjs.dev/) storage provider persisting in [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) (for educational purposes only!)
 
+[Yjs](https://github.com/yjs/yjs) provides a complete ecosystem for (persisting and) sharing "Conflict-free replicated data types" (CRDT) among multiple clients using a variety of persistence and communication providers. 
+
+This module implements a simple Yjs storage provider for browser-based applications which uses [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) for persistance. In addition to other database providers it
+
+* contains an `isSynced` property which reflects the current synchronization status and
+* emits additional events (`sync-started`, `sync-continued` and `sync-finished`) which informs about synchronization progress.
+
+Like other providers, however, it also lacks any error handling - which should normally exist in _any_ "database" implementation...
+
 > Nota bene: do not use this provider in production - it has solely be written for educational purposes!
 
 
