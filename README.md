@@ -1,6 +1,6 @@
 # y-localstorage #
 
-a simple Yjs storage provider persisting in localStorage (for educational purposes only!)
+a simple [Yjs](https://docs.yjs.dev/) storage provider persisting in [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) (for educational purposes only!)
 
 > Nota bene: do not use this provider in production - it has solely be written for educational purposes!
 
