@@ -32,7 +32,7 @@ namespace LocalStorageProvider {
 
   /**** _applyStoredUpdates - applies all stored (incremental) updates to sharedDoc ****/
 
-    _applyStoredUpdates ():void {
+    private _applyStoredUpdates ():void {
       const PrefixLength = this._DocPrefix.length
 
       const StorageKeys = this._StorageKeys()
@@ -57,7 +57,7 @@ namespace LocalStorageProvider {
 
   /**** _storeUpdate - stores a given (incremental) update ****/
 
-    _storeUpdate (Update:Uint8Array, Origin?:any):void {
+    private _storeUpdate (Update:Uint8Array, Origin?:any):void {
       if (this._sharedDoc == null) { return }    // persistence no longer exists
 
       if (Origin !== this) {          // ignore updates applied by this provider
@@ -81,7 +81,7 @@ namespace LocalStorageProvider {
 
   /**** _removeStoredUpdates - removes any stored (incremental) updates ****/
 
-    _removeStoredUpdates ():void {
+    private _removeStoredUpdates ():void {
       this._StorageKeys().forEach((Key) => {
         localStorage.removeItem(Key)
       })
@@ -107,7 +107,7 @@ namespace LocalStorageProvider {
 
   /**** _reportProgress - emits events reporting synchronization progress ****/
 
-    _reportProgress ():void {
+    private _reportProgress ():void {
       switch (true) {
         case (this._pendingUpdates === 0):
           this._completedUpdates = 0
@@ -129,7 +129,7 @@ namespace LocalStorageProvider {
 
   /**** _StorageKeys - lists all keys used by this provider ****/
 
-    _StorageKeys ():string[] {
+    private _StorageKeys ():string[] {
       const PrefixLength = this._DocPrefix.length
 
       const Result:string[] = []
