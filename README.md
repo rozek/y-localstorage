@@ -80,14 +80,14 @@ The following documentation shows method signatures as used by TypeScript - if y
 
 ### Properties ###
 
-* **`isSynced`**<br>returns `true` while the initially given `Y.Doc` and this provider are in sync - or `false` otherwise
+* **`isSynced`**<br>returns `true` while the initially given `Y.Doc` and this provider are in-sync - or `false` otherwise
 
 ### Events ###
 
 * **`on('sync-started', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
 * **`on('sync-continued', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
-* **`on('sync-finished', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>
-* **`on('synced', Handler:(Provider:LocalStorageProvider) => void`**<br>
+* **`on('sync-finished', Handler:(Provider:LocalStorageProvider, Progress:number) => void`**<br>the `sync-finished` event is fired whenever a synchronization between this provider and its associated `Y.Doc` has finished. `Provider` contains a reference to this provider and `Progress` is always `1.0`
+* **`on('synced', Handler:(Provider:LocalStorageProvider) => void`**<br>the `synced` event works like in any other Yjs provider and is fired whenever (initially or after an update to the associated `Y.Doc`) this provider gets in-sync again
 
 ## Build Instructions ##
 
