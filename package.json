@@ -1,6 +1,6 @@
 {
   "name": "y-localstorage",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "a simple Yjs storage provider persisting in localStorage (for educational purposes)",
   "type": "module",
   "browser": "./dist/y-localstorage.js",
