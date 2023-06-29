@@ -99,6 +99,8 @@ namespace LocalStorageProvider {
                 this._DocPrefix + this._UpdateCounter,
                 JSON.stringify(Array.from(Update))
               )
+
+              this._UpdateCounter++
             } else {                      // compact previous and current update
               localStorage.setItem(                                  // may fail
                 this._DocPrefix + 0,
@@ -112,8 +114,6 @@ namespace LocalStorageProvider {
               'could not persist document update', Signal
             )
           }
-
-          this._UpdateCounter++
         this._completedUpdates++; this._reportProgress()
       }
     }
