@@ -6,10 +6,11 @@ a simple [Yjs](https://docs.yjs.dev/) storage provider persisting in [localStora
 
 This module implements a simple Yjs storage provider for browser-based applications which uses [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) for persistance. In addition to other database providers it
 
-* contains an `isSynced` property which reflects the current synchronization status and
-* emits additional events (`sync-started`, `sync-continued` and `sync-finished`) which informs about synchronization progress.
+* contains an `isSynced` property which reflects the current synchronization status,
+* emits additional events (`sync-started`, `sync-continued`, `sync-finished`` and `sync-aborted`) which informs about synchronization progress and
+* includes rudimentary error handling which breaks down the provider upon failure (which means that you have to re-incarnate the provider after the cause for this failure has been removed).
 
-Like other providers, however, it also lacks any error handling - which should normally exist in _every_ "database" implementation...
+`y-localstorage` always tries to keep your data safe and not to overwrite or even delete previously written updates. Even a failure normally only means that the last update could not be written but all the previous ones are still safe.
 
 **NPM users**: please consider the [Github README](https://github.com/rozek/y-localstorage/blob/main/README.md) for the latest description of this package (as updating the docs would otherwise always require a new NPM package version)
 
@@ -87,7 +88,7 @@ The following documentation shows method signatures as used by TypeScript - if y
 * **`on('sync-started', Handler:(Provider:LocalStorageProvider, Progress:number) => void)`**<br>the `sync-started` event is fired whenever a synchronization between this provider and its associated `Y.Doc` has begun. `Provider` contains a reference to this provider and `Progress` is always `0.0`
 * **`on('sync-continued', Handler:(Provider:LocalStorageProvider, Progress:number) => void)`**<br>the `sync-continued` event may be fired several times while a synchronization between this provider and its associated `Y.Doc` is in progress if this synchronization can not be completed instantaneously. `Provider` contains a reference to this provider and `Progress` is a number between `0.0` and `1.0` indicating how much has already been synchronized. Please note: depending on how many new updates are generated (in contrast to how many have been synchronized during that time) the reported `Progress` may not always increase but may even decrease sometimes
 * **`on('sync-finished', Handler:(Provider:LocalStorageProvider, Progress:number) => void)`**<br>the `sync-finished` event is fired whenever a synchronization between this provider and its associated `Y.Doc` has finished. `Provider` contains a reference to this provider and `Progress` is always `1.0`
-* **`on('sync-aborted', Handler:(Provider:LocalStorageProvider, Progress:number) => void)`**<br>the `sync-aborted` event is fired when a synchronization between this provider and its associated `Y.Doc` has been aborted (e.g., because the provider was destroyed). `Provider` contains a reference to this provider and `Progress` is always `1.0`. After such an event, the `Provider` remains unusable and has to be created again
+* **`on('sync-aborted', Handler:(Provider:LocalStorageProvider, Progress:number) => void)`**<br>the `sync-aborted` event is fired when a synchronization between this provider and its associated `Y.Doc` has been aborted (e.g., because the space on localStorage was exhausted or the provider was destroyed). `Provider` contains a reference to this provider and `Progress` is always `1.0`. After such an event, the `Provider` remains unusable and has to be created again
 * **`on('synced', Handler:(Provider:LocalStorageProvider) => void`**<br>the `synced` event works like in any other Yjs provider and is fired whenever (initially or after an update to the associated `Y.Doc`) this provider gets in-sync again
 
 ## Build Instructions ##
