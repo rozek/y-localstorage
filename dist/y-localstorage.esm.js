@@ -11,7 +11,7 @@ var LocalStorageProvider;
             this._CounterLimit = 5;
             this._pendingUpdates = 0;
             this._completedUpdates = 0;
-            this._SubDocMap = new WeakMap();
+            this._SubDocMap = new Map();
             this._DocPrefix = DocName + '-';
             this._sharedDoc = sharedDoc;
             this._UpdateCounter = 0; // will be updated by "_applyStoredUpdates"
@@ -142,14 +142,19 @@ var LocalStorageProvider;
                 console.warn('y-localstorage: could not clean-up localstorage, reason: ' + lastFailure);
             }
         }
-        /**** _breakdownWith - breaks down this provider after failure ****/
-        _breakdownWith(Message, Reason) {
+        /**** _breakdown - breaks down this provider ****/
+        _breakdown() {
             // @ts-ignore allow clearing of "this._sharedDoc"
             this._sharedDoc = undefined;
             if (!this.isSynced) {
                 this._pendingUpdates = 0;
                 this.emit('sync-aborted', [this, 1.0]);
             }
+            this._SubDocMap.forEach((Provider) => Provider._breakdown());
+        }
+        /**** _breakdownWith - breaks down this provider after failure ****/
+        _breakdownWith(Message, Reason) {
+            this._breakdown();
             throw new Error(Message + (Reason == null ? '' : ', reason: ' + Reason));
         }
         /**** _manageSubDocs - manages subdoc persistences ****/
@@ -170,7 +175,11 @@ var LocalStorageProvider;
             if (removed != null) {
                 removed.forEach((SubDoc) => {
                     console.log('SubDoc removed', SubDoc.guid);
-                    this._removeStoredSubDoc(SubDoc);
+                    //        this._removeStoredSubDoc(SubDoc)
+                    const Provider = this._SubDocMap.get(SubDoc);
+                    if (Provider != null) {
+                        Provider._breakdown();
+                    }
                     this._SubDocMap.delete(SubDoc);
                 });
             }
