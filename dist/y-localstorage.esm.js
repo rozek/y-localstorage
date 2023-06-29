@@ -78,6 +78,7 @@ var LocalStorageProvider;
                     if (this._UpdateCounter < this._CounterLimit - 1) { // append update
                         localStorage.setItem(// may fail
                         this._DocPrefix + this._UpdateCounter, JSON.stringify(Array.from(Update)));
+                        this._UpdateCounter++;
                     }
                     else { // compact previous and current update
                         localStorage.setItem(// may fail
@@ -88,7 +89,6 @@ var LocalStorageProvider;
                 catch (Signal) {
                     this._breakdownWith('could not persist document update', Signal);
                 }
-                this._UpdateCounter++;
                 this._completedUpdates++;
                 this._reportProgress();
             }
