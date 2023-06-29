@@ -2,6 +2,12 @@ import * as Y         from 'yjs'
 import { Observable } from 'lib0/observable'
 
 namespace LocalStorageProvider {
+  const GUIDPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+  type SubDocChanges = {
+    added:Set<Y.Doc>, removed:Set<Y.Doc>, loaded:Set<Y.Doc>
+  }
+
   export class LocalStorageProvider extends Observable<any> {
     private _DocPrefix:string
     private _sharedDoc:Y.Doc
@@ -11,6 +17,8 @@ namespace LocalStorageProvider {
 
     private _pendingUpdates:number   = 0
     private _completedUpdates:number = 0
+
+    private _SubDocMap:WeakMap<Y.Doc,LocalStorageProvider> = new WeakMap()
 
     constructor (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5) {
       super()
@@ -32,6 +40,9 @@ namespace LocalStorageProvider {
       this._storeUpdate = this._storeUpdate.bind(this)
       sharedDoc.on('update', this._storeUpdate)
 
+      this._manageSubDocs = this._manageSubDocs.bind(this)
+      sharedDoc.on('subdocs', this._manageSubDocs)
+
       this.destroy = this.destroy.bind(this)
       sharedDoc.on('destroy', this.destroy)
     }
@@ -48,8 +59,10 @@ namespace LocalStorageProvider {
       if (this._sharedDoc == null) { return }    // persistence no longer exists
 
       this._removeStoredUpdatesStartingWith(0)
+      this._removeStoredSubDocs()
 
       this._sharedDoc.off('update',  this._storeUpdate)
+      this._sharedDoc.off('subdocs', this._manageSubDocs)
       this._sharedDoc.off('destroy', this.destroy)
 
       if (! this.isSynced) {
@@ -102,7 +115,7 @@ namespace LocalStorageProvider {
               )
 
               this._UpdateCounter++
-            } else {                      // compact previous and current update
+            } else {                     // compact previous and current updates
               localStorage.setItem(                                  // may fail
                 this._DocPrefix + 0,
                 JSON.stringify(Array.from(Y.encodeStateAsUpdate(this._sharedDoc)))
@@ -124,20 +137,42 @@ namespace LocalStorageProvider {
     private _removeStoredUpdatesStartingWith (minimalIndex:number):void {
       const PrefixLength = this._DocPrefix.length
 
-      try {
+      let lastFailure:any = undefined
         this._StorageKeys().forEach((Key) => {
           let UpdateIndex = parseInt(Key.slice(PrefixLength),10)
           if (UpdateIndex >= minimalIndex) {
-            localStorage.removeItem(Key)                             // may fail
+            try {
+              localStorage.removeItem(Key)                           // may fail
+            } catch (Signal:any) {
+              lastFailure = Signal
+            }
           }
         })
-      } catch (Signal:any) {
+      if (lastFailure != null) {
         console.warn(
-          'y-localstorage: could not clean-up localstorage, reason: ' + Signal
+          'y-localstorage: could not clean-up localstorage, reason: ' + lastFailure
         )
       }
 
       this._UpdateCounter = minimalIndex
+    }
+
+  /**** _removeStoredSubDocs - removes any stored subdocs ****/
+
+    private _removeStoredSubDocs ():void {
+      let lastFailure:any = undefined
+        this._StorageSubKeys().forEach((Key) => {
+          try {
+            localStorage.removeItem(Key)                             // may fail
+          } catch (Signal:any) {
+            lastFailure = Signal
+          }
+        })
+      if (lastFailure != null) {
+        console.warn(
+          'y-localstorage: could not clean-up localstorage, reason: ' + lastFailure
+        )
+      }
     }
 
   /**** _breakdownWith - breaks down this provider after failure ****/
@@ -154,6 +189,34 @@ namespace LocalStorageProvider {
       throw new Error(
         Message + (Reason == null ? '' : ', reason: ' + Reason)
       )
+    }
+
+  /**** _manageSubDocs - manages subdoc persistences ****/
+
+    private _manageSubDocs (Changes:SubDocChanges):void {
+      const providePersistenceFor = (SubDoc:Y.Doc) => {
+        if (! this._SubDocMap.has(SubDoc)) {
+          const SubDocProvider = new LocalStorageProvider(
+            this._DocPrefix.slice(0,-1) + '.' + SubDoc.guid, SubDoc,
+            this._CounterLimit
+          )
+          this._SubDocMap.set(SubDoc,SubDocProvider)
+        }
+      }
+
+      const { added, removed, loaded } = Changes
+
+      if (added != null) {
+        added.forEach((SubDoc:Y.Doc) => providePersistenceFor(SubDoc))
+      }
+
+      if (removed != null) {
+        removed.forEach((SubDoc:Y.Doc) => this._SubDocMap.delete(SubDoc))
+      }
+
+      if (loaded != null) {
+        loaded.forEach((SubDoc:Y.Doc) => providePersistenceFor(SubDoc))
+      }
     }
 
   /**** _reportProgress - emits events reporting synchronization progress ****/
@@ -178,7 +241,7 @@ namespace LocalStorageProvider {
       }
     }
 
-  /**** _StorageKeys - lists all keys used by this provider ****/
+  /**** _StorageKeys - lists all keys used for sharedDoc itself ****/
 
     private _StorageKeys ():string[] {
       const PrefixLength = this._DocPrefix.length
@@ -189,6 +252,23 @@ namespace LocalStorageProvider {
           if (
             Key.startsWith(this._DocPrefix) &&
             (/^\d+$/.test(Key.slice(PrefixLength)) === true)
+          ) { Result.push(Key) }
+        }
+      return Result
+    }
+
+  /**** _StorageSubKeys - lists all keys used for subdocs of sharedDoc ****/
+
+    private _StorageSubKeys ():string[] {
+      const DocPrefix    = this._DocPrefix.slice(0,-1) + '.'
+      const PrefixLength = DocPrefix.length
+
+      const Result:string[] = []
+        for (let i = 0, l = localStorage.length; i < l; i++) {
+          const Key = localStorage.key(i) as string
+          if (
+            Key.startsWith(DocPrefix) &&
+            (GUIDPattern.test(Key.slice(PrefixLength)) === true)
           ) { Result.push(Key) }
         }
       return Result
