@@ -18,7 +18,7 @@ namespace LocalStorageProvider {
     private _pendingUpdates:number   = 0
     private _completedUpdates:number = 0
 
-    private _SubDocMap:WeakMap<Y.Doc,LocalStorageProvider> = new WeakMap()
+    private _SubDocMap:Map<Y.Doc,LocalStorageProvider> = new Map()
 
     constructor (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5) {
       super()
@@ -187,9 +187,9 @@ namespace LocalStorageProvider {
       }
     }
 
-  /**** _breakdownWith - breaks down this provider after failure ****/
+  /**** _breakdown - breaks down this provider ****/
 
-    private _breakdownWith (Message:string, Reason?:any):never {
+    private _breakdown ():void {
 // @ts-ignore allow clearing of "this._sharedDoc"
       this._sharedDoc = undefined
 
@@ -197,6 +197,14 @@ namespace LocalStorageProvider {
         this._pendingUpdates = 0
         this.emit('sync-aborted',[this,1.0])
       }
+
+      this._SubDocMap.forEach((Provider) => Provider._breakdown())
+    }
+
+  /**** _breakdownWith - breaks down this provider after failure ****/
+
+    private _breakdownWith (Message:string, Reason?:any):never {
+      this._breakdown()
 
       throw new Error(
         Message + (Reason == null ? '' : ', reason: ' + Reason)
@@ -228,7 +236,11 @@ console.log('SubDoc added',SubDoc.guid)
       if (removed != null) {
         removed.forEach((SubDoc:Y.Doc) => {
 console.log('SubDoc removed',SubDoc.guid)
-          this._removeStoredSubDoc(SubDoc)
+//        this._removeStoredSubDoc(SubDoc)
+
+          const Provider = this._SubDocMap.get(SubDoc)
+          if (Provider != null) { Provider._breakdown() }
+
           this._SubDocMap.delete(SubDoc)
         })
       }
