@@ -21,13 +21,44 @@ namespace LocalStorageProvider {
       this._UpdateCounter = 0        // will be updated by "_applyStoredUpdates"
       this._CounterLimit  = CounterLimit
 
-      this._applyStoredUpdates()           // also updates "this._UpdateCounter"
+      try {
+        this._applyStoredUpdates()         // also updates "this._UpdateCounter"
+      } catch (Signal:any) {
+        this._breakdownWith(
+          'could not restore document from persistence', Signal
+        )
+      }
 
       this._storeUpdate = this._storeUpdate.bind(this)
       sharedDoc.on('update', this._storeUpdate)
 
       this.destroy = this.destroy.bind(this)
       sharedDoc.on('destroy', this.destroy)
+    }
+
+  /**** isSynced - is true while this provider and its sharedDoc are in-sync ****/
+
+    public get isSynced ():boolean {
+      return (this._pendingUpdates === 0)
+    }
+
+  /**** destroy - destroys persistence, invalidates provider ****/
+
+    public destroy ():void {
+      if (this._sharedDoc == null) { return }    // persistence no longer exists
+
+      this._removeStoredUpdatesStartingWith(0)
+
+      this._sharedDoc.off('update',  this._storeUpdate)
+      this._sharedDoc.off('destroy', this.destroy)
+
+      if (! this.isSynced) {
+        this._pendingUpdates = 0
+        this.emit('sync-aborted',[this,1.0])
+      }
+
+// @ts-ignore allow clearing of "this._sharedDoc"
+      this._sharedDoc = undefined
     }
 
   /**** _applyStoredUpdates - applies all stored (incremental) updates to sharedDoc ****/
@@ -62,55 +93,66 @@ namespace LocalStorageProvider {
 
       if (Origin !== this) {          // ignore updates applied by this provider
         this._pendingUpdates++; this._reportProgress()
-          if (this._UpdateCounter < this._CounterLimit-1) {
-            localStorage.setItem(
-              this._DocPrefix + this._UpdateCounter,
-              JSON.stringify(Array.from(Update))
-            )
-          } else {
-            this._removeStoredUpdates()
-            localStorage.setItem(
-              this._DocPrefix + this._UpdateCounter,
-              JSON.stringify(Array.from(Y.encodeStateAsUpdate(this._sharedDoc)))
+          try {
+            if (this._UpdateCounter < this._CounterLimit-1) {   // append update
+              localStorage.setItem(                                  // may fail
+                this._DocPrefix + this._UpdateCounter,
+                JSON.stringify(Array.from(Update))
+              )
+            } else {                      // compact previous and current update
+              localStorage.setItem(                                  // may fail
+                this._DocPrefix + 0,
+                JSON.stringify(Array.from(Y.encodeStateAsUpdate(this._sharedDoc)))
+              )
+
+              this._removeStoredUpdatesStartingWith(1)
+            }
+          } catch (Signal:any) {
+            this._breakdownWith(
+              'could not persist document update', Signal
             )
           }
+
           this._UpdateCounter++
         this._completedUpdates++; this._reportProgress()
       }
     }
 
-  /**** _removeStoredUpdates - removes any stored (incremental) updates ****/
+  /**** _removeStoredUpdatesStartingWith - removes stored (incremental) updates ****/
 
-    private _removeStoredUpdates ():void {
-      this._StorageKeys().forEach((Key) => {
-        localStorage.removeItem(Key)
-      })
-      this._UpdateCounter = 0
+    private _removeStoredUpdatesStartingWith (minimalIndex:number):void {
+      const PrefixLength = this._DocPrefix.length
+
+      try {
+        this._StorageKeys().forEach((Key) => {
+          let UpdateIndex = parseInt(Key.slice(PrefixLength),10)
+          if (UpdateIndex >= minimalIndex) {
+            localStorage.removeItem(Key)                             // may fail
+          }
+        })
+      } catch (Signal:any) {
+        console.warn(
+          'y-localstorage: could not clean-up localstorage, reason: ' + Signal
+        )
+      }
+
+      this._UpdateCounter = minimalIndex
     }
 
-  /**** destroy - destroys persistence, invalidates provider ****/
+  /**** _breakdownWith - breaks down this provider after failure ****/
 
-    destroy ():void {
-      if (this._sharedDoc == null) { return }    // persistence no longer exists
-
-      this._removeStoredUpdates()
-
-      this._sharedDoc.off('update',  this._storeUpdate)
-      this._sharedDoc.off('destroy', this.destroy)
+    private _breakdownWith (Message:string, Reason?:any):never {
+// @ts-ignore allow clearing of "this._sharedDoc"
+      this._sharedDoc = undefined
 
       if (! this.isSynced) {
         this._pendingUpdates = 0
         this.emit('sync-aborted',[this,1.0])
       }
 
-// @ts-ignore allow clearing of "this._sharedDoc"
-      this._sharedDoc = undefined
-    }
-
-  /**** isSynced - is true while this provider and its sharedDoc are in-sync ****/
-
-    get isSynced ():boolean {
-      return (this._pendingUpdates === 0)
+      throw new Error(
+        Message + (Reason == null ? '' : ', reason: ' + Reason)
+      )
     }
 
   /**** _reportProgress - emits events reporting synchronization progress ****/
