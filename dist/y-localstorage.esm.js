@@ -6,7 +6,7 @@ var LocalStorageProvider;
     class LocalStorageProvider extends Observable {
         constructor(DocName, sharedDoc, CounterLimit = 5) {
             super();
-            this._UpdateCounter = 0;
+            this._UpdateCounter = 1; // index "0" is reserved for compaction
             this._CounterLimit = 5;
             this._pendingUpdates = 0;
             this._completedUpdates = 0;
@@ -63,6 +63,7 @@ var LocalStorageProvider;
                 });
             }
             else {
+                this._UpdateCounter = 1; // keep "0" for compacted updates
                 this._reportProgress();
             }
         }
