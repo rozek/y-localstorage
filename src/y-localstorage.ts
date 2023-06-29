@@ -160,8 +160,20 @@ namespace LocalStorageProvider {
   /**** _removeStoredSubDocs - removes any stored subdocs ****/
 
     private _removeStoredSubDocs ():void {
+      this._removeStoredSubDoc()                      // avoids duplicating code
+    }
+
+  /**** _removeStoredSubDoc - removes a single stored subdoc ****/
+
+    private _removeStoredSubDoc (SubDoc?:Y.Doc):void {
       let lastFailure:any = undefined
-        this._StorageSubKeys().forEach((Key) => {
+        const StorageKeys = (
+          SubDoc == null
+          ? this._StorageSubKeys()
+          : this._StorageSubKeysFor(SubDoc)
+        )
+
+        StorageKeys.forEach((Key) => {
           try {
             localStorage.removeItem(Key)                             // may fail
           } catch (Signal:any) {
@@ -207,15 +219,25 @@ namespace LocalStorageProvider {
       const { added, removed, loaded } = Changes
 
       if (added != null) {
-        added.forEach((SubDoc:Y.Doc) => providePersistenceFor(SubDoc))
+        added.forEach((SubDoc:Y.Doc) => {
+console.log('SubDoc added',SubDoc.guid)
+          providePersistenceFor(SubDoc)
+        })
       }
 
       if (removed != null) {
-        removed.forEach((SubDoc:Y.Doc) => this._SubDocMap.delete(SubDoc))
+        removed.forEach((SubDoc:Y.Doc) => {
+console.log('SubDoc removed',SubDoc.guid)
+          this._removeStoredSubDoc(SubDoc)
+          this._SubDocMap.delete(SubDoc)
+        })
       }
 
       if (loaded != null) {
-        loaded.forEach((SubDoc:Y.Doc) => providePersistenceFor(SubDoc))
+        loaded.forEach((SubDoc:Y.Doc) => {
+console.log('SubDoc loaded',SubDoc.guid)
+          providePersistenceFor(SubDoc)
+        })
       }
     }
 
@@ -244,17 +266,7 @@ namespace LocalStorageProvider {
   /**** _StorageKeys - lists all keys used for sharedDoc itself ****/
 
     private _StorageKeys ():string[] {
-      const PrefixLength = this._DocPrefix.length
-
-      const Result:string[] = []
-        for (let i = 0, l = localStorage.length; i < l; i++) {
-          const Key = localStorage.key(i) as string
-          if (
-            Key.startsWith(this._DocPrefix) &&
-            (/^\d+$/.test(Key.slice(PrefixLength)) === true)
-          ) { Result.push(Key) }
-        }
-      return Result
+      return this._StorageSubKeysFor()                // avoids duplicating code
     }
 
   /**** _StorageSubKeys - lists all keys used for subdocs of sharedDoc ****/
@@ -269,6 +281,27 @@ namespace LocalStorageProvider {
           if (
             Key.startsWith(DocPrefix) &&
             (GUIDPattern.test(Key.slice(PrefixLength)) === true)
+          ) { Result.push(Key) }
+        }
+      return Result
+    }
+
+  /**** _StorageSubKeysFor - lists all keys used for a given subdoc ****/
+
+    private _StorageSubKeysFor (SubDoc?:Y.Doc):string[] {
+      const DocPrefix = (
+        SubDoc == null
+        ? this._DocPrefix
+        : this._DocPrefix.slice(0,-1) + '.' + SubDoc.guid + '-'
+      )
+      const PrefixLength = DocPrefix.length
+
+      const Result:string[] = []
+        for (let i = 0, l = localStorage.length; i < l; i++) {
+          const Key = localStorage.key(i) as string
+          if (
+            Key.startsWith(DocPrefix) &&
+            (/^\d+$/.test(Key.slice(PrefixLength)) === true)
           ) { Result.push(Key) }
         }
       return Result
