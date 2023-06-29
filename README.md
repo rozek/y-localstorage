@@ -7,7 +7,8 @@ a simple [Yjs](https://docs.yjs.dev/) storage provider persisting in [localStora
 This module implements a simple Yjs storage provider for browser-based applications which uses [localStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) for persistance. In addition to other database providers it
 
 * contains an `isSynced` property which reflects the current synchronization status,
-* emits additional events (`sync-started`, `sync-continued`, `sync-finished`` and `sync-aborted`) which informs about synchronization progress and
+* emits additional events (`sync-started`, `sync-continued`, `sync-finished`` and `sync-aborted`) which informs about synchronization progress,
+* recognizes subdocs (which will then automatically be persisted as well), and
 * includes rudimentary error handling which breaks down the provider upon failure (which means that you have to re-incarnate the provider after the cause for this failure has been removed).
 
 `y-localstorage` always tries to keep your data safe and not to overwrite or even delete previously written updates. Even a failure normally only means that the last update could not be written but all the previous ones are still safe.
