@@ -6,7 +6,7 @@ namespace LocalStorageProvider {
     private _DocPrefix:string
     private _sharedDoc:Y.Doc
 
-    private _UpdateCounter:number = 0
+    private _UpdateCounter:number = 1    // index "0" is reserved for compaction
     private _CounterLimit:number  = 5
 
     private _pendingUpdates:number   = 0
@@ -82,6 +82,7 @@ namespace LocalStorageProvider {
           this._completedUpdates++; this._reportProgress()
         })
       } else {
+        this._UpdateCounter = 1                // keep "0" for compacted updates
         this._reportProgress()
       }
     }
