@@ -226,28 +226,21 @@ namespace LocalStorageProvider {
 
       const { added, removed, loaded } = Changes
 
-      if (added != null) {
-        added.forEach((SubDoc:Y.Doc) => {
-console.log('SubDoc added',SubDoc.guid)
-          providePersistenceFor(SubDoc)
-        })
-      }
-
       if (removed != null) {
         removed.forEach((SubDoc:Y.Doc) => {
-console.log('SubDoc removed',SubDoc.guid)
-//        this._removeStoredSubDoc(SubDoc)
-
           const Provider = this._SubDocMap.get(SubDoc)
           if (Provider != null) { Provider._breakdown() }
 
           this._SubDocMap.delete(SubDoc)
+
+          if (! added.has(SubDoc)) {        // has "SubDoc" really been removed?
+            this._removeStoredSubDoc(SubDoc)// assumes absence of Y.Doc "copies"
+          }
         })
       }
 
       if (loaded != null) {
         loaded.forEach((SubDoc:Y.Doc) => {
-console.log('SubDoc loaded',SubDoc.guid)
           providePersistenceFor(SubDoc)
         })
       }
