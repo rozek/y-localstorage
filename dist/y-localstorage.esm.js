@@ -50,6 +50,19 @@ var LocalStorageProvider;
             // @ts-ignore allow clearing of "this._sharedDoc"
             this._sharedDoc = undefined;
         }
+        /**** destroyPersistenceNamed ****/
+        static destroyPersistenceNamed(DocName) {
+            let KeyList = [];
+            for (let i = 0, l = localStorage.length; i < l; i++) {
+                const Key = localStorage.key(i);
+                if (Key.startsWith(DocName + '-') || Key.startsWith(DocName + '.')) {
+                    KeyList.push(Key);
+                }
+            }
+            KeyList.forEach((Key) => {
+                localStorage.removeItem(Key);
+            });
+        }
         /**** _applyStoredUpdates - applies all stored (incremental) updates to sharedDoc ****/
         _applyStoredUpdates() {
             const PrefixLength = this._DocPrefix.length;
@@ -82,7 +95,7 @@ var LocalStorageProvider;
                 this._pendingUpdates++;
                 this._reportProgress();
                 try {
-                    if (this._UpdateCounter < this._CounterLimit - 1) { // append update
+                    if (this._UpdateCounter < this._CounterLimit) { // append update
                         localStorage.setItem(// may fail
                         this._DocPrefix + this._UpdateCounter, JSON.stringify(Array.from(Update)));
                         this._UpdateCounter++;
@@ -160,7 +173,9 @@ var LocalStorageProvider;
         /**** _manageSubDocs - manages subdoc persistences ****/
         _manageSubDocs(Changes) {
             const providePersistenceFor = (SubDoc) => {
-                if (!this._SubDocMap.has(SubDoc)) {
+                if (!this._SubDocMap.has(SubDoc) &&
+                    (this._sharedDoc.guid !== SubDoc.guid) // "doc copies" are strange
+                ) {
                     const SubDocProvider = new LocalStorageProvider(this._DocPrefix.slice(0, -1) + '.' + SubDoc.guid, SubDoc, this._CounterLimit);
                     this._SubDocMap.set(SubDoc, SubDocProvider);
                 }
@@ -173,8 +188,11 @@ var LocalStorageProvider;
                         Provider._breakdown();
                     }
                     this._SubDocMap.delete(SubDoc);
-                    if (!added.has(SubDoc)) { // has "SubDoc" really been removed?
-                        this._removeStoredSubDoc(SubDoc); // assumes absence of Y.Doc "copies"
+                    if ((this._sharedDoc != null) && // "doc copies" are strange...
+                        (this._sharedDoc.guid !== SubDoc.guid) &&
+                        Array.from(this._sharedDoc.getSubdocs().values()).every((existingSubDoc) => (existingSubDoc.guid !== SubDoc.guid)) // ...really
+                    ) {
+                        this._removeStoredSubDoc(SubDoc);
                     }
                 });
             }
