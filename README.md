@@ -13,6 +13,8 @@ This module implements a simple Yjs storage provider for browser-based applicati
 
 `y-localstorage` always tries to keep your data safe and not to overwrite or even delete previously written updates. Even a failure normally only means that the last update could not be written but all the previous ones are still safe.
 
+> **Important: do not use the "copy" feature for `Y.Doc`s, i.e., do not create a `Y.Doc` instance with the same GUID as another one - they do not "synchronize" as described in the docs anyway.**
+
 **NPM users**: please consider the [Github README](https://github.com/rozek/y-localstorage/blob/main/README.md) for the latest description of this package (as updating the docs would otherwise always require a new NPM package version)
 
 > Nota bene: do not use this provider in production - it has solely be written for educational purposes!
