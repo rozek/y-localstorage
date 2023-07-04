@@ -105,8 +105,8 @@ namespace LocalStorageProvider {
           }
 
           const Update = new Uint8Array(JSON.parse(localStorage.getItem(Key) as string))
-          Y.applyUpdate(this._sharedDoc, Update)  // can be applied in any order
-
+          Y.applyUpdate(this._sharedDoc, Update, this)
+                                          // updates can be applied in any order
           this._completedUpdates++; this._reportProgress()
         })
       } else {
