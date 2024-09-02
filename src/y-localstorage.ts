@@ -1,7 +1,7 @@
 import * as Y         from 'yjs'
 import { Observable } from 'lib0/observable'
 
-namespace LocalStorageProvider {
+//namespace LocalStorageProvider {
   const GUIDPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
   type SubDocChanges = {
@@ -21,8 +21,8 @@ namespace LocalStorageProvider {
     private _SubDocMap:Map<Y.Doc,LocalStorageProvider> = new Map()
 
     constructor (DocName:string, sharedDoc:Y.Doc, CounterLimit:number = 5) {
-      super()
-
+    	super()
+    	
       this._DocPrefix = DocName + '-'
       this._sharedDoc = sharedDoc
 
@@ -336,4 +336,4 @@ namespace LocalStorageProvider {
       return Result
     }
   }
-}
+//}
