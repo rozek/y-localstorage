@@ -1,19 +1,20 @@
 {
   "name": "y-localstorage",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "a simple Yjs storage provider persisting in localStorage (for educational purposes)",
-  "type": "module",
-  "source": "src/y-localstorage.ts",
-  "main": "./dist/y-localstorage.cjs",
+  "source": "./src/y-localstorage.ts",
+  "main":   "./dist/y-localstorage.umd.js",
+  "browser":"./dist/y-localstorage.umd.js",
   "module": "./dist/y-localstorage.esm.js",
   "svelte": "./dist/y-localstorage.esm.js",
-  "umd:main": "./dist/y-localstorage.umd.js",
-  "types": "./dist/y-localstorage.d.ts",
+  "types":  "./dist/y-localstorage.d.ts",
   "exports": {
     ".": {
-    	"types": "./dist/y-localstorage.d.ts",
-      "require": "./dist/y-localstorage.cjs",
-      "import": "./dist/y-localstorage.modern.js"
+      "require":"./dist/y-localstorage.umd.js",
+      "browser":"./dist/y-localstorage.umd.js",
+      "import": "./dist/y-localstorage.esm.js",
+      "svelte": "./dist/y-localstorage.esm.js",
+    	"types":  "./dist/y-localstorage.d.ts"
     },
     "./package.json": "./package.json"
   },
